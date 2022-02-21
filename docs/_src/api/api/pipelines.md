@@ -635,198 +635,8 @@ class BaseStandardPipeline(ABC)
 ```
 
 Base class for pre-made standard Haystack pipelines.
-This class does not inherit from Pipeline.
 
-<a id="standard_pipelines.BaseStandardPipeline.add_node"></a>
-
-#### add\_node
-
-```python
-def add_node(component, name: str, inputs: List[str])
-```
-
-Add a new node to the pipeline.
-
-**Arguments**:
-
-- `component`: The object to be called when the data is passed to the node. It can be a Haystack component
-(like Retriever, Reader, or Generator) or a user-defined object that implements a run()
-method to process incoming data from predecessor node.
-- `name`: The name for the node. It must not contain any dots.
-- `inputs`: A list of inputs to the node. If the predecessor node has a single outgoing edge, just the name
-of node is sufficient. For instance, a 'ElasticsearchRetriever' node would always output a single
-edge with a list of documents. It can be represented as ["ElasticsearchRetriever"].
-
-In cases when the predecessor node has multiple outputs, e.g., a "QueryClassifier", the output
-must be specified explicitly as "QueryClassifier.output_2".
-
-<a id="standard_pipelines.BaseStandardPipeline.get_node"></a>
-
-#### get\_node
-
-```python
-def get_node(name: str)
-```
-
-Get a node from the Pipeline.
-
-**Arguments**:
-
-- `name`: The name of the node.
-
-<a id="standard_pipelines.BaseStandardPipeline.set_node"></a>
-
-#### set\_node
-
-```python
-def set_node(name: str, component)
-```
-
-Set the component for a node in the Pipeline.
-
-**Arguments**:
-
-- `name`: The name of the node.
-- `component`: The component object to be set at the node.
-
-<a id="standard_pipelines.BaseStandardPipeline.draw"></a>
-
-#### draw
-
-```python
-def draw(path: Path = Path("pipeline.png"))
-```
-
-Create a Graphviz visualization of the pipeline.
-
-**Arguments**:
-
-- `path`: the path to save the image.
-
-<a id="standard_pipelines.BaseStandardPipeline.save_to_yaml"></a>
-
-#### save\_to\_yaml
-
-```python
-def save_to_yaml(path: Path, return_defaults: bool = False)
-```
-
-Save a YAML configuration for the Pipeline that can be used with `Pipeline.load_from_yaml()`.
-
-**Arguments**:
-
-- `path`: path of the output YAML file.
-- `return_defaults`: whether to output parameters that have the default values.
-
-<a id="standard_pipelines.BaseStandardPipeline.load_from_yaml"></a>
-
-#### load\_from\_yaml
-
-```python
-@classmethod
-def load_from_yaml(cls, path: Path, pipeline_name: Optional[str] = None, overwrite_with_env_variables: bool = True)
-```
-
-Load Pipeline from a YAML file defining the individual components and how they're tied together to form
-
-a Pipeline. A single YAML can declare multiple Pipelines, in which case an explicit `pipeline_name` must
-be passed.
-
-Here's a sample configuration:
-
-    ```yaml
-    |   version: '0.8'
-    |
-    |    components:    # define all the building-blocks for Pipeline
-    |    - name: MyReader       # custom-name for the component; helpful for visualization & debugging
-    |      type: FARMReader    # Haystack Class name for the component
-    |      params:
-    |        no_ans_boost: -10
-    |        model_name_or_path: deepset/roberta-base-squad2
-    |    - name: MyESRetriever
-    |      type: ElasticsearchRetriever
-    |      params:
-    |        document_store: MyDocumentStore    # params can reference other components defined in the YAML
-    |        custom_query: null
-    |    - name: MyDocumentStore
-    |      type: ElasticsearchDocumentStore
-    |      params:
-    |        index: haystack_test
-    |
-    |    pipelines:    # multiple Pipelines can be defined using the components from above
-    |    - name: my_query_pipeline    # a simple extractive-qa Pipeline
-    |      nodes:
-    |      - name: MyESRetriever
-    |        inputs: [Query]
-    |      - name: MyReader
-    |        inputs: [MyESRetriever]
-    ```
-
-**Arguments**:
-
-- `path`: path of the YAML file.
-- `pipeline_name`: if the YAML contains multiple pipelines, the pipeline_name to load must be set.
-- `overwrite_with_env_variables`: Overwrite the YAML configuration with environment variables. For example,
-to change index name param for an ElasticsearchDocumentStore, an env
-variable 'MYDOCSTORE_PARAMS_INDEX=documents-2021' can be set. Note that an
-`_` sign must be used to specify nested hierarchical properties.
-
-<a id="standard_pipelines.BaseStandardPipeline.get_nodes_by_class"></a>
-
-#### get\_nodes\_by\_class
-
-```python
-def get_nodes_by_class(class_type) -> List[Any]
-```
-
-Gets all nodes in the pipeline that are an instance of a certain class (incl. subclasses).
-
-This is for example helpful if you loaded a pipeline and then want to interact directly with the document store.
-Example:
-```python
-| from haystack.document_stores.base import BaseDocumentStore
-| INDEXING_PIPELINE = Pipeline.load_from_yaml(Path(PIPELINE_YAML_PATH), pipeline_name=INDEXING_PIPELINE_NAME)
-| res = INDEXING_PIPELINE.get_nodes_by_class(class_type=BaseDocumentStore)
-```
-
-**Returns**:
-
-List of components that are an instance of the requested class
-
-<a id="standard_pipelines.BaseStandardPipeline.get_document_store"></a>
-
-#### get\_document\_store
-
-```python
-def get_document_store() -> Optional[BaseDocumentStore]
-```
-
-Return the document store object used in the current pipeline.
-
-**Returns**:
-
-Instance of DocumentStore or None
-
-<a id="standard_pipelines.BaseStandardPipeline.eval"></a>
-
-#### eval
-
-```python
-def eval(labels: List[MultiLabel], params: Optional[dict] = None, sas_model_name_or_path: Optional[str] = None, add_isolated_node_eval: bool = False) -> EvaluationResult
-```
-
-Evaluates the pipeline by running the pipeline once per query in debug mode
-
-and putting together all data that is needed for evaluation, e.g. calculating metrics.
-
-**Arguments**:
-
-- `labels`: The labels to evaluate on
-- `params`: Params for the `retriever` and `reader`. For instance,
-params={"Retriever": {"top_k": 10}, "Reader": {"top_k": 5}}
-- `sas_model_name_or_path`: SentenceTransformers semantic textual similarity model to be used for sas value calculation,
-should be path or string pointing to downloadable models.
-- `add_isolated_node_eval`: Whether to additionally evaluate the reader based on labels as input instead of output of previous node in pipeline
+Wraps a Pipeline object.
 
 <a id="standard_pipelines.ExtractiveQAPipeline"></a>
 
@@ -838,25 +648,6 @@ class ExtractiveQAPipeline(BaseStandardPipeline)
 
 Pipeline for Extractive Question Answering.
 
-<a id="standard_pipelines.ExtractiveQAPipeline.run"></a>
-
-#### run
-
-```python
-def run(query: str, params: Optional[dict] = None, debug: Optional[bool] = None)
-```
-
-**Arguments**:
-
-- `query`: The search query string.
-- `params`: Params for the `retriever` and `reader`. For instance,
-params={"Retriever": {"top_k": 10}, "Reader": {"top_k": 5}}
-- `debug`: Whether the pipeline should instruct nodes to collect debug information
-about their execution. By default these include the input parameters
-they received and the output they generated.
-All debug information can then be found in the dict returned
-by this method under the key "_debug"
-
 <a id="standard_pipelines.DocumentSearchPipeline"></a>
 
 ## DocumentSearchPipeline
@@ -867,24 +658,6 @@ class DocumentSearchPipeline(BaseStandardPipeline)
 
 Pipeline for semantic document search.
 
-<a id="standard_pipelines.DocumentSearchPipeline.run"></a>
-
-#### run
-
-```python
-def run(query: str, params: Optional[dict] = None, debug: Optional[bool] = None)
-```
-
-**Arguments**:
-
-- `query`: the query string.
-- `params`: params for the `retriever` and `reader`. For instance, params={"Retriever": {"top_k": 10}}
-- `debug`: Whether the pipeline should instruct nodes to collect debug information
-about their execution. By default these include the input parameters
-they received and the output they generated.
-All debug information can then be found in the dict returned
-by this method under the key "_debug"
-
 <a id="standard_pipelines.GenerativeQAPipeline"></a>
 
 ## GenerativeQAPipeline
@@ -894,25 +667,6 @@ class GenerativeQAPipeline(BaseStandardPipeline)
 ```
 
 Pipeline for Generative Question Answering.
-
-<a id="standard_pipelines.GenerativeQAPipeline.run"></a>
-
-#### run
-
-```python
-def run(query: str, params: Optional[dict] = None, debug: Optional[bool] = None)
-```
-
-**Arguments**:
-
-- `query`: the query string.
-- `params`: params for the `retriever` and `generator`. For instance,
-params={"Retriever": {"top_k": 10}, "Generator": {"top_k": 5}}
-- `debug`: Whether the pipeline should instruct nodes to collect debug information
-about their execution. By default these include the input parameters
-they received and the output they generated.
-All debug information can then be found in the dict returned
-by this method under the key "_debug"
 
 <a id="standard_pipelines.SearchSummarizationPipeline"></a>
 
@@ -952,24 +706,6 @@ class FAQPipeline(BaseStandardPipeline)
 ```
 
 Pipeline for finding similar FAQs using semantic document search.
-
-<a id="standard_pipelines.FAQPipeline.run"></a>
-
-#### run
-
-```python
-def run(query: str, params: Optional[dict] = None, debug: Optional[bool] = None)
-```
-
-**Arguments**:
-
-- `query`: the query string.
-- `params`: params for the `retriever`. For instance, params={"Retriever": {"top_k": 10}}
-- `debug`: Whether the pipeline should instruct nodes to collect debug information
-about their execution. By default these include the input parameters
-they received and the output they generated.
-All debug information can then be found in the dict returned
-by this method under the key "_debug"
 
 <a id="standard_pipelines.TranslationWrapperPipeline"></a>
 

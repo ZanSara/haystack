@@ -54,8 +54,11 @@ class ExtractiveQAPipeline(BaseStandardPipeline):
         metrics_filter: Optional[Dict[str, List[str]]] = None,
     ):
         self.pipeline.print_eval_report(
-            eval_result=eval_result, n_wrong_examples=n_wrong_examples, metrics_filter=metrics_filter or {"Retriever": ["recall_single_hit"]}
+            eval_result=eval_result,
+            n_wrong_examples=n_wrong_examples,
+            metrics_filter=metrics_filter or {"Retriever": ["recall_single_hit"]},
         )
+
 
 class DocumentSearchPipeline(BaseStandardPipeline):
     """
