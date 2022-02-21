@@ -43,6 +43,7 @@ class ExtractiveQAPipeline(BaseStandardPipeline):
         :param reader: Reader instance
         :param retriever: Retriever instance
         """
+        super().__init__()
         self.pipeline.add_node(component=retriever, name="Retriever", inputs=["Query"])
         self.pipeline.add_node(component=reader, name="Reader", inputs=["Retriever"])
 
@@ -65,6 +66,7 @@ class DocumentSearchPipeline(BaseStandardPipeline):
         """
         :param retriever: Retriever instance
         """
+        super().__init__()
         self.pipeline.add_node(component=retriever, name="Retriever", inputs=["Query"])
 
 
@@ -78,6 +80,7 @@ class GenerativeQAPipeline(BaseStandardPipeline):
         :param generator: Generator instance
         :param retriever: Retriever instance
         """
+        super().__init__()
         self.pipeline.add_node(component=retriever, name="Retriever", inputs=["Query"])
         self.pipeline.add_node(component=generator, name="Generator", inputs=["Retriever"])
 
@@ -95,6 +98,7 @@ class SearchSummarizationPipeline(BaseStandardPipeline):
                                         format used in other QA pipelines (True). With the latter, you can use this
                                         pipeline as a "drop-in replacement" for other QA pipelines.
         """
+        super().__init__()
         self.pipeline.add_node(component=retriever, name="Retriever", inputs=["Query"])
         self.pipeline.add_node(component=summarizer, name="Summarizer", inputs=["Retriever"])
         self.return_in_answer_format = return_in_answer_format
@@ -143,6 +147,7 @@ class FAQPipeline(BaseStandardPipeline):
         """
         :param retriever: Retriever instance
         """
+        super().__init__()
         self.pipeline.add_node(component=retriever, name="Retriever", inputs=["Query"])
         self.pipeline.add_node(component=Docs2Answers(), name="Docs2Answers", inputs=["Retriever"])
 
@@ -164,6 +169,7 @@ class TranslationWrapperPipeline(BaseStandardPipeline):
         :param pipeline: The pipeline object (e.g. ExtractiveQAPipeline) you want to "wrap".
                          Note that pipelines with split or merge nodes are currently not supported.
         """
+        super().__init__()
         self.pipeline.add_node(component=input_translator, name="InputTranslator", inputs=["Query"])
 
         graph = pipeline.pipeline.graph
@@ -190,6 +196,7 @@ class QuestionGenerationPipeline(BaseStandardPipeline):
     """
 
     def __init__(self, question_generator: QuestionGenerator):
+        super().__init__()
         self.pipeline.add_node(component=question_generator, name="QuestionGenerator", inputs=["Query"])
 
 
@@ -200,6 +207,7 @@ class RetrieverQuestionGenerationPipeline(BaseStandardPipeline):
     """
 
     def __init__(self, retriever: BaseRetriever, question_generator: QuestionGenerator):
+        super().__init__()
         self.pipeline.add_node(component=retriever, name="Retriever", inputs=["Query"])
         self.pipeline.add_node(component=question_generator, name="Question Generator", inputs=["Retriever"])
 
@@ -211,6 +219,7 @@ class QuestionAnswerGenerationPipeline(BaseStandardPipeline):
     """
 
     def __init__(self, question_generator: QuestionGenerator, reader: BaseReader):
+        super().__init__()
         setattr(question_generator, "run", self.formatting_wrapper(question_generator.run))
         # Overwrite reader.run function so it can handle a batch of questions being passed on by the QuestionGenerator
         setattr(reader, "run", reader.run_batch)
@@ -241,6 +250,7 @@ class MostSimilarDocumentsPipeline(BaseStandardPipeline):
 
         :param document_store: Document Store instance with already stored embeddings.
         """
+        super().__init__()
         self.document_store = document_store
 
     def run(self, document_ids: List[str], top_k: int = 5):
