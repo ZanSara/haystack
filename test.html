@@ -1,0 +1,38 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+  </head>
+  <body>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/pyodide/v0.23.3/full/pyodide.js"></script>
+    <script type="text/javascript">
+      async function main() {
+        wheel_url = "https://github.com/ZanSara/haystack/raw/34cd81fff67f431fb8c342d315398fd829af13d2/farm_haystack-1.18.0rc0-py3-none-any.whl";
+        
+        let pyodide = await loadPyodide();
+        await pyodide.loadPackage("micropip");
+        const micropip = pyodide.pyimport("micropip");
+        await micropip.install(wheel_url);
+        await pyodide.runPython(`
+        import haystack
+        print('Hello, World!')
+      `);
+      }
+      main();
+    </script>
+    <!--py-config>
+        packages = []
+    </py-config>
+    <py-script>
+
+        await pyodide.loadPackage("micropip");
+        const micropip = pyodide.pyimport("micropip");
+        wheel_url = "https://github.com/ZanSara/haystack/raw/34cd81fff67f431fb8c342d315398fd829af13d2/farm_haystack-1.18.0rc0-py3-none-any.whl"
+        await micropip.install(wheel_url);
+        pyodide.runPython(`
+          import haystack
+          print('Hello, World!')
+        `);
+    </py-script-->
+  </body>
+</html>
